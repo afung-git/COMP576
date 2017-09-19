@@ -24,8 +24,7 @@ def plot_decision_boundary(pred_func, X, y):
     x_min, x_max = X[:, 0].min() - .5, X[:, 0].max() + .5
     y_min, y_max = X[:, 1].min() - .5, X[:, 1].max() + .5
     h = 0.01
-    # Generate a grid of points with distance h between them
-    xx, yy = np.meshgrid(np.arange(x_min, x_max, h), np.arange(y_min, y_max, h))
+    # Generate a grid min, y_max, h))
     # Predict the function value for the whole gid
     Z = pred_func(np.c_[xx.ravel(), yy.ravel()])
     Z = Z.reshape(xx.shape)
@@ -75,6 +74,14 @@ class NeuralNetwork(object):
         '''
 
         # YOU IMPLMENT YOUR actFun HERE
+        if type == 'Tanh':
+            return np.tanh(z)
+        if type == 'Sigmoid':
+            return 1
+        if type == 'ReLU':
+            return 1
+        else:
+            raise("No match for type:" + type)
 
         return None
 
