@@ -213,7 +213,7 @@ def main():
     plt.scatter(X[:, 0], X[:, 1], s=40, c=y, cmap=plt.cm.Spectral)
     plt.title("Make-Moon Dataset")
     plt.show()
-    print()
+
 
     # model = NeuralNetwork(nn_input_dim=2, nn_hidden_dim=3 , nn_output_dim=2, actFun_type='tanh')
     # model.fit_model(X,y)
