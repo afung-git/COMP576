@@ -74,16 +74,15 @@ class NeuralNetwork(object):
         '''
 
         # YOU IMPLMENT YOUR actFun HERE
-        if type == 'Tanh':
+        if type == 'tanh':
             return np.tanh(z)
-        if type == 'Sigmoid':
-            return 1
-        if type == 'ReLU':
-            return 1
+        if type == 'sigmoid':
+            return 1/(1+np.exp(-z))
+        if type == 'relu':
+            return z*(z>0)
         else:
             raise("No match for type:" + type)
 
-        return None
 
     def diff_actFun(self, z, type):
         '''
@@ -94,6 +93,12 @@ class NeuralNetwork(object):
         '''
 
         # YOU IMPLEMENT YOUR diff_actFun HERE
+        if type == 'tanh':
+            return 1.0 - np.tanh(z)**2
+        if type == 'sigmoid':
+            return (1.0/(1.0+np.exp(-z)))*(1.0-(1.0/(1.0+np.exp(-z))))
+        if type == "relu":
+            return 1.0*(z>0)
 
         return None
 
@@ -108,9 +113,9 @@ class NeuralNetwork(object):
 
         # YOU IMPLEMENT YOUR feedforward HERE
 
-        # self.z1 =
-        # self.a1 =
-        # self.z2 =
+        self.z1 = X.dot(self.W1) + self.b1
+        self.a1 = actFun(self.z1)
+        self.z2 = self.a1.dot(self.W2) + self.b2
         exp_scores = np.exp(self.z2)
         self.probs = exp_scores / np.sum(exp_scores, axis=1, keepdims=True)
         return None
@@ -128,7 +133,7 @@ class NeuralNetwork(object):
 
         # YOU IMPLEMENT YOUR CALCULATION OF THE LOSS HERE
 
-        # data_loss =
+        data_loss = -1/num_examples * np.sum(y.T*np.log(self.probs))
 
         # Add regulatization term to loss (optional)
         data_loss += self.reg_lambda / 2 * (np.sum(np.square(self.W1)) + np.sum(np.square(self.W2)))
@@ -203,10 +208,12 @@ class NeuralNetwork(object):
 
 def main():
     # # generate and visualize Make-Moons dataset
+
     X, y = generate_data()
     plt.scatter(X[:, 0], X[:, 1], s=40, c=y, cmap=plt.cm.Spectral)
     plt.title("Make-Moon Dataset")
     plt.show()
+    print()
 
     # model = NeuralNetwork(nn_input_dim=2, nn_hidden_dim=3 , nn_output_dim=2, actFun_type='tanh')
     # model.fit_model(X,y)
