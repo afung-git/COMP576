@@ -133,7 +133,7 @@ class NeuralNetwork(object):
 
         # YOU IMPLEMENT YOUR CALCULATION OF THE LOSS HERE
 
-        data_loss = -1/num_examples * np.sum(y.T*np.log(self.probs))
+        data_loss = -1 * np.sum(y.T*np.log(self.probs))
 
         # Add regulatization term to loss (optional)
         data_loss += self.reg_lambda / 2 * (np.sum(np.square(self.W1)) + np.sum(np.square(self.W2)))
