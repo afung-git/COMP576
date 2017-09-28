@@ -5,5 +5,5 @@ def relu(z):
 
 
 x = np.array([-3, -.5, -.2, 0, .2, .5, 3])
-print(x)
+print(x.shape)
 print(relu(x))

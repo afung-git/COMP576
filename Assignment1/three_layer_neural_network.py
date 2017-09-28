@@ -75,15 +75,14 @@ class NeuralNetwork(object):
         '''
 
         # YOU IMPLMENT YOUR actFun HERE
-        z = np.array(z)
         if type == 'tanh':
             return np.tanh(z)
         if type == 'sigmoid':
             return 1/(1+np.exp(-z))
         if type == 'relu':
-               z*(z>0)
-        else:
-            raise("No match for type:" + type)
+            return z*(z > 0)
+
+        return None
 
 
     def diff_actFun(self, z, type):
@@ -95,13 +94,12 @@ class NeuralNetwork(object):
         '''
 
         # YOU IMPLEMENT YOUR diff_actFun HERE
-        z = np.array(z)
         if type == 'tanh':
             return 1.0 - np.tanh(z)**2
         if type == 'sigmoid':
             return (1.0/(1.0+np.exp(-z)))*(1.0-(1.0/(1.0+np.exp(-z))))
         if type == "relu":
-            return 1.0*(z>0)
+            return 1.0*(z > 0)
 
         return None
 
@@ -136,7 +134,10 @@ class NeuralNetwork(object):
         # Calculating the loss
 
         # YOU IMPLEMENT YOUR CALCULATION OF THE LOSS HERE
-        data_loss = -np.sum((y.T.dot(np.log(self.probs))))
+        #data_loss = -np.sum(y.T.dot(np.log(self.probs)))
+
+        y_expanded = np.vstack((np.logical_not(y.astype(bool)).astype(int), y)).T
+        data_loss = -1 * np.sum(y_expanded * np.log(self.probs))
 
         # Add regulatization term to loss (optional)
         data_loss += self.reg_lambda / 2 * (np.sum(np.square(self.W1)) + np.sum(np.square(self.W2)))
@@ -163,9 +164,10 @@ class NeuralNetwork(object):
         num_examples = len(X)
         delta3 = self.probs
         delta3[range(num_examples), y] -= 1
+        delta3 /= num_examples
         dW2 = self.a1.T.dot(delta3)
         db2 = np.sum(delta3, axis=0, keepdims=True)
-        delta2 = delta3.dot(self.W2.T) * (1 - np.power(self.a1, 2))
+        delta2 = delta3.dot(self.W2.T) * self.diff_actFun(self.z1, type=self.actFun_type)
         dW1 = X.T.dot(delta2)
         db1 = np.sum(delta2, axis=0, keepdims=True)
         return dW1, dW2, db1, db2
@@ -198,7 +200,7 @@ class NeuralNetwork(object):
 
             # Optionally print the loss.
             # This is expensive because it uses the whole dataset, so we don't want to do it too often.
-            if print_loss and i % 1000 == 0:
+            if print_loss and i % 10 == 0:
                 print("Loss after iteration %i: %f" % (i, self.calculate_loss(X, y)))
 
     def visualize_decision_boundary(self, X, y):
@@ -219,9 +221,12 @@ def main():
     #plt.show()
 
 
-
+    #Initializes the NN with parameters
     model = NeuralNetwork(nn_input_dim=2, nn_hidden_dim=3 , nn_output_dim=2, actFun_type='relu')
+
+    #Train on the dataset with the created NN
     model.fit_model(X,y)
+
     model.visualize_decision_boundary(X,y)
 
 if __name__ == "__main__":
