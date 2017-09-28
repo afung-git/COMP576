@@ -1,4 +1,4 @@
-__author__ = 'tan_nguyen'
+#__author__ = 'tan_nguyen'
 import numpy as np
 from sklearn import datasets, linear_model
 import matplotlib.pyplot as plt
@@ -25,6 +25,7 @@ def plot_decision_boundary(pred_func, X, y):
     y_min, y_max = X[:, 1].min() - .5, X[:, 1].max() + .5
     h = 0.01
     # Generate a grid min, y_max, h))
+    xx, yy = np.meshgrid(np.arange(x_min, x_max, h), np.arange(y_min, y_max, h))
     # Predict the function value for the whole gid
     Z = pred_func(np.c_[xx.ravel(), yy.ravel()])
     Z = Z.reshape(xx.shape)
@@ -74,12 +75,13 @@ class NeuralNetwork(object):
         '''
 
         # YOU IMPLMENT YOUR actFun HERE
+        z = np.array(z)
         if type == 'tanh':
             return np.tanh(z)
         if type == 'sigmoid':
             return 1/(1+np.exp(-z))
         if type == 'relu':
-            return z*(z>0)
+               z*(z>0)
         else:
             raise("No match for type:" + type)
 
@@ -93,6 +95,7 @@ class NeuralNetwork(object):
         '''
 
         # YOU IMPLEMENT YOUR diff_actFun HERE
+        z = np.array(z)
         if type == 'tanh':
             return 1.0 - np.tanh(z)**2
         if type == 'sigmoid':
@@ -128,12 +131,12 @@ class NeuralNetwork(object):
         :return: the loss for prediction
         '''
         num_examples = len(X)
+
         self.feedforward(X, lambda x: self.actFun(x, type=self.actFun_type))
         # Calculating the loss
 
         # YOU IMPLEMENT YOUR CALCULATION OF THE LOSS HERE
-
-        data_loss = -1 * np.sum(y.T*np.log(self.probs))
+        data_loss = -np.sum((y.T.dot(np.log(self.probs))))
 
         # Add regulatization term to loss (optional)
         data_loss += self.reg_lambda / 2 * (np.sum(np.square(self.W1)) + np.sum(np.square(self.W2)))
@@ -160,10 +163,11 @@ class NeuralNetwork(object):
         num_examples = len(X)
         delta3 = self.probs
         delta3[range(num_examples), y] -= 1
-        # dW2 = dL/dW2
-        # db2 = dL/db2
-        # dW1 = dL/dW1
-        # db1 = dL/db1
+        dW2 = self.a1.T.dot(delta3)
+        db2 = np.sum(delta3, axis=0, keepdims=True)
+        delta2 = delta3.dot(self.W2.T) * (1 - np.power(self.a1, 2))
+        dW1 = X.T.dot(delta2)
+        db1 = np.sum(delta2, axis=0, keepdims=True)
         return dW1, dW2, db1, db2
 
     def fit_model(self, X, y, epsilon=0.01, num_passes=20000, print_loss=True):
@@ -210,14 +214,15 @@ def main():
     # # generate and visualize Make-Moons dataset
 
     X, y = generate_data()
-    plt.scatter(X[:, 0], X[:, 1], s=40, c=y, cmap=plt.cm.Spectral)
+    #plt.scatter(X[:, 0], X[:, 1], s=40, c=y, cmap=plt.cm.Spectral)
     plt.title("Make-Moon Dataset")
-    plt.show()
+    #plt.show()
 
 
-    # model = NeuralNetwork(nn_input_dim=2, nn_hidden_dim=3 , nn_output_dim=2, actFun_type='tanh')
-    # model.fit_model(X,y)
-    # model.visualize_decision_boundary(X,y)
+
+    model = NeuralNetwork(nn_input_dim=2, nn_hidden_dim=3 , nn_output_dim=2, actFun_type='relu')
+    model.fit_model(X,y)
+    model.visualize_decision_boundary(X,y)
 
 if __name__ == "__main__":
     main()
