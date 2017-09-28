@@ -216,7 +216,9 @@ def main():
     # # generate and visualize Make-Moons dataset
 
     X, y = generate_data()
-    #plt.scatter(X[:, 0], X[:, 1], s=40, c=y, cmap=plt.cm.Spectral)
+    #plt.scatter(X[:, 0], X[:, 1], s=40, c=y, cmap=plt.cm.Spectral)y_expanded = np.vstack((np.logical_not(y.astype(bool)).astype(int), y)).T
+
+
     plt.title("Make-Moon Dataset")
     #plt.show()
 
