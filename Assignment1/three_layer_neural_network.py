@@ -119,6 +119,7 @@ class NeuralNetwork(object):
         self.z2 = self.a1.dot(self.W2) + self.b2
         exp_scores = np.exp(self.z2)
         self.probs = exp_scores / np.sum(exp_scores, axis=1, keepdims=True)
+        #print(self.probs)
         return None
 
     def calculate_loss(self, X, y):
@@ -131,13 +132,13 @@ class NeuralNetwork(object):
         num_examples = len(X)
 
         self.feedforward(X, lambda x: self.actFun(x, type=self.actFun_type))
+        #print("self.probs: ", np.shape(self.probs))
         # Calculating the loss
 
         # YOU IMPLEMENT YOUR CALCULATION OF THE LOSS HERE
-        #data_loss = -np.sum(y.T.dot(np.log(self.probs)))
-
-        y_expanded = np.vstack((np.logical_not(y.astype(bool)).astype(int), y)).T
-        data_loss = -1 * np.sum(y_expanded * np.log(self.probs))
+        y_recode= np.vstack((np.logical_not(y.astype(bool)).astype(int), y))
+        #print("y_recode: ", y_recode.T)
+        data_loss = np.sum(y_recode.T*(-np.log(self.probs)))
 
         # Add regulatization term to loss (optional)
         data_loss += self.reg_lambda / 2 * (np.sum(np.square(self.W1)) + np.sum(np.square(self.W2)))
@@ -149,7 +150,7 @@ class NeuralNetwork(object):
         :param X: input data
         :return: label inferred
         '''
-        self.feedforward(X, lambda x: self.actFun(x, type=self.actFun_type))
+        self.feedforward(X, lambda x: self.actFun(x, self.actFun_type))
         return np.argmax(self.probs, axis=1)
 
     def backprop(self, X, y):
@@ -165,14 +166,22 @@ class NeuralNetwork(object):
         delta3 = self.probs
         delta3[range(num_examples), y] -= 1
         delta3 /= num_examples
+        #print("delta3: ", delta3.shape)
+        #print("W2: ", np.shape(self.W2))
+        #print("W1: ", np.shape(self.W1))
+        #print("a1: ", np.shape(self.a1))
+        #print("b2: ", np.shape(self.b2))
         dW2 = self.a1.T.dot(delta3)
-        db2 = np.sum(delta3, axis=0, keepdims=True)
+        db2 = np.sum(delta3, axis=0)
+        #print("dW2: ", np.shape(dW2))
         delta2 = delta3.dot(self.W2.T) * self.diff_actFun(self.z1, type=self.actFun_type)
+        #print("delta2: ", np.shape(delta2))
+        #print("X: ", X.shape)
         dW1 = X.T.dot(delta2)
-        db1 = np.sum(delta2, axis=0, keepdims=True)
+        db1 = np.sum(delta2, axis=0)
         return dW1, dW2, db1, db2
 
-    def fit_model(self, X, y, epsilon=0.01, num_passes=20000, print_loss=True):
+    def fit_model(self, X, y, epsilon=0.001, num_passes=20000, print_loss=True):
         '''
         fit_model uses backpropagation to train the network
         :param X: input data
@@ -200,7 +209,7 @@ class NeuralNetwork(object):
 
             # Optionally print the loss.
             # This is expensive because it uses the whole dataset, so we don't want to do it too often.
-            if print_loss and i % 10 == 0:
+            if print_loss and i % 1000 == 0:
                 print("Loss after iteration %i: %f" % (i, self.calculate_loss(X, y)))
 
     def visualize_decision_boundary(self, X, y):
@@ -224,7 +233,7 @@ def main():
 
 
     #Initializes the NN with parameters
-    model = NeuralNetwork(nn_input_dim=2, nn_hidden_dim=3 , nn_output_dim=2, actFun_type='relu')
+    model = NeuralNetwork(nn_input_dim=2, nn_hidden_dim=100, nn_output_dim=2, actFun_type='relu')
 
     #Train on the dataset with the created NN
     model.fit_model(X,y)
