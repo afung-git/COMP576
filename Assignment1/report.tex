@@ -22,14 +22,14 @@ Sigmoid:
 		&=\frac{e^{-x}}{(1+e^{-x})^{2}} = \frac{1}{1+e^{-x}}\frac{e^{-x}}{1+e^{-x}}\\\\
 		&=\frac{1}{1+e^{-x}}\frac{(1+e^{-x}) - 1}{1+e^{-x}}\\\\
 		&= \frac{1}{1+e^{-x}}\left (1 - \frac{ 1}{1+e^{-x}}\right)\\\\
-		\frac{d(1+e^{-x})^{-1}}{dx} &= f(x)(1-f(x))\\
+		\boldsymbol{\frac{d(1+e^{-x})^{-1}}{dx}} &\boldsymbol{= f(x)(1-f(x))}\\
 	\end{align*}
 Tanh:
 	\begin{align*}
-		f(x) &= tanh(x) = \frac{sinh(x)}{cosh(x)}\\ \\
-		\frac{d\left(\frac{sinh(x)}{cosh(x)}\right)}{dx}&= \frac{cosh(x)cosh(x) - sinh(x)sinh(x)}{cosh^{2}(x)}\\\\
-		&= \frac{cosh^{2}(x)-sinh^{2}(x)}{cosh^{2}(x)} = \frac{cosh^{2}(x)}{cosh^{2}(x)} -  \frac{sinh^{2}(x)}{cosh^{2}(x)}\\\\
-		\frac{d\left(\frac{sinh(x)}{cosh(x)}\right)}{dx}&=1-tanh^{2}(x)\\
+		f(x) &= \tanh{x} = \frac{\sinh{x}}{\cosh{x}}\\ \\
+		\frac{d\left(\frac{\sinh{x}}{\cosh{x}}\right)}{dx}&= \frac{\cosh{x}\cosh{x} - \sinh{x}\sinh{x}}{\cosh^{2}{x}}\\\\
+		&= \frac{\cosh^{2}{x}-\sinh^{2}{x}}{\cosh^{2}{x}} = \frac{\cosh^{2}{x}}{\cosh^{2}{x}} -  \frac{\sinh^{2}{x}}{\cosh^{2}{x}}\\\\
+		\boldsymbol{\frac{d\left(\frac{\sinh{x}}{\cosh{x}}\right)}{dx}}& \boldsymbol{=1-\tanh^{2}{x}}\\
 	\end{align*}
 ReLu:
 	\begin{equation*}
@@ -70,7 +70,7 @@ Gradients: $\frac{\partial L}{\partial W^{2}}$, $\frac{\partial L}{\partial b^{2
 	\begin{align*}
 		\frac{\partial L}{\partial W^{2}} &= \frac{\partial L}{\partial \hat{y}}\frac{\partial \hat{y}}{\partial z^{2}}\frac{\partial z^{2}}{\partial W^{2}}\\ \\
 		\frac{\partial z^{2}}{\partial W^{2}} &= \frac{\partial (W^{2}a^{2}+b^{2})}{\partial W^{2}}\\ \\
-		\boldsymbol{\frac{\partial z^{2}}{\partial W^{2}}}= \boldsymbol{=a^{2}}
+		\boldsymbol{\frac{\partial z^{2}}{\partial W^{2}}}& \boldsymbol{=a^{2}}
 	\\
 	\\
 		\frac{\partial \hat{y_i}}{\partial z_i^{2}} &= \frac{\partial \left(\frac{e^{z_i^2}}{\sum_{j=1}^Ce^{z_j^2}}\right)}{\partial z_i^2}\\ \\
