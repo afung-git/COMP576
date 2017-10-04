@@ -41,11 +41,11 @@ class DeepNeuralNetwork(NeuralNetwork):
     This class inherits from NeuralNetwork and builds a DeepNetwork Class
     """
 
-    def __init__(self, nn_input_dim, nn_layer_num, nn_hidden_dim, nn_output_dim, actFun_type='tanh', reg_lambda=0.01, seed=0):
+    def __init__(self, nn_input_dim, nn_hlayer_num, nn_hlayer_dim, nn_output_dim, actFun_type='tanh', reg_lambda=0.01, seed=0):
         '''
         :param nn_input_dim: input dimension
-        :param nn_layer_num: number of hidden layers
-        :param nn_hidden_dim: the number of hidden units
+        :param nn_hlayer_num: number of hidden layers
+        :param nn_hlayer_dim: the number of hidden units
         :param nn_output_dim: output dimension
         :param actFun_type: type of activation function. 3 options: 'tanh', 'sigmoid', 'relu'
         :param reg_lambda: regularization coefficient
@@ -53,29 +53,30 @@ class DeepNeuralNetwork(NeuralNetwork):
         '''
 
         self.nn_input_dim = nn_input_dim
-        self.nn_layer_num = nn_layer_num
-        self.nn_hidden_dim = nn_hidden_dim - 1  # n-1 weights and bias
+        self.nn_hlayer_num = nn_hlayer_num
+        self.nn_hlayer_dim = nn_hlayer_dim
         self.nn_output_dim = nn_output_dim
         self.actFun_type = actFun_type
         self.reg_lambda = reg_lambda
+        self.hLayer = Layer(self.nn_hlayer_num, self.actFun_type)
 
         # initialize the weights and biases in the network
         np.random.seed(seed)
 
         # initializes weights and biases for Output layer (L) and input layer(1)
-        self.W1 = np.random.randn(self.nn_input_dim, self.nn_hidden_dim) / np.sqrt(self.nn_input_dim)
-        self.b1 = np.zeros((1, self.nn_hidden_dim))
-        self.WL = np.random.randn(self.nn_hidden_dim, self.nn_output_dim) / np.sqrt(self.nn_hidden_dim)
+        self.W1 = np.random.randn(self.nn_input_dim, self.nn_hlayer_dim) / np.sqrt(self.nn_input_dim)
+        self.b1 = np.zeros((1, self.nn_hlayer_dim))
+        self.WL = np.random.randn(self.nn_hlayer_dim, self.nn_output_dim) / np.sqrt(self.nn_hlayer_dim)
         self.bL = np.zeros((1, self.nn_output_dim))
 
-        # creates N-dimension array for each W and B for the hidden layers (subtract out first and L layers)
-        if nn_hidden_dim - 2:
-            self.Whidden = np.random.randn(self.nn_hidden_dim, self.nn_hidden_dim, nn_layer_num-2) / \
-                           np.sqrt(self.nn_hidden_dim)
-            self.bhidden = np.zeros((1, self.nn_hidden_dim, nn_layer_num-1))
+        # initializes a N-dimension array to store each W and B for the hidden layers
+        self.Wh = np.random.randn(self.nn_hlayer_dim, self.nn_hlayer_dim, nn_hlayer_num -1) / \
+                           np.sqrt(self.nn_hlayer_dim)
+        self.bh = np.zeros((1, self.nn_hlayer_dim, nn_hlayer_num -1))
 
 
-    def actFun(self, z, type):
+
+    def actFun(self, z: object, type: object) -> object:
         '''
         actFun computes the activation functions
         :param z: net input
@@ -121,8 +122,27 @@ class DeepNeuralNetwork(NeuralNetwork):
         '''
 
         # YOU IMPLEMENT YOUR feedforward HERE
-        # Layer.feedforward()
+        self.z1 = X.dot(self.W1) + self.b1
+        self.a1 = actFun(self.z1)
+        self.zh = np.zeros((len(X), self.nn_hlayer_dim, self.nn_hlayer_num-1))
+        self.ah = np.zeros((len(X), self.nn_hlayer_dim, self.nn_hlayer_num-1))
+        #print(self.zh.shape)
+        #print(self.ah.shape)
 
+        self.zh[:, :, 0], self.ah[:, :, 0] = self.hLayer.feedforward(self.a1, self.Wh[:, :, 0], self.bh[:, :, 0], 0)
+        #print(self.zh[:,:,0].shape)
+        #print(self.ah[:,:,0].shape)
+
+        #print(self.nn_hlayer_num-1)
+        for i in range(1, self.nn_hlayer_num-1):
+            #print("ran")
+            self.zh[:, :, i], self.ah[:, :, i] = self.hLayer.feedforward(self.ah[:, :, i-1], self.Wh[:, :, i], self.bh[:, :, i], i)
+            #print(np.shape(self.Wh[:,:,1]))
+        self.zL = self.ah[:, :, -1].dot(self.WL) + self.bL
+
+        exp_scores = np.exp(self.zL)
+        self.probs = exp_scores / np.sum(exp_scores, axis=1, keepdims=True)
+        #print("yaya")
         return None
 
     def calculate_loss(self, X, y):
@@ -142,7 +162,12 @@ class DeepNeuralNetwork(NeuralNetwork):
         data_loss = np.sum(-np.log(self.probs[range(num_examples), y]))
 
         # Add regulatization term to loss (optional)
-        data_loss += self.reg_lambda / 2 * (np.sum(np.square(self.W1)) + np.sum(np.square(self.W2)))
+
+        WSS = 0
+        for i in range(0, self.nn_hlayer_num-1):
+                WSS += np.sum(np.square(self.Wh[:, :, i]))
+        WSS += np.sum(np.square(self.W1)) + np.sum(np.square(self.WL))
+        data_loss += self.reg_lambda / 2 * WSS
         return (1. / num_examples) * data_loss
 
     def predict(self, X):
@@ -163,11 +188,46 @@ class DeepNeuralNetwork(NeuralNetwork):
         '''
 
         # IMPLEMENT YOUR BACKPROP HERE
-        #Layer.backprop()
+        num_examples = len(X)
+        deltaL = self.probs
+        # print(delta3)
+        deltaL[range(num_examples), y] -= 1
+        deltaL /= num_examples
 
-        return None
+        dWL = self.a1.T.dot(deltaL)
+        dbL = np.sum(deltaL, axis=0)
+        #print(dbL.shape)
 
-    def fit_model(self, X, y, epsilon=0.001, num_passes=20000, print_loss=True):
+        dWh = np.zeros((self.nn_hlayer_dim, self.nn_hlayer_dim, self.nn_hlayer_num-1))
+        dbh = np.zeros((1, self.nn_hlayer_dim, self.nn_hlayer_num-1))
+        delta = np.zeros((len(X), self.nn_hlayer_dim, self.nn_hlayer_num-1))
+        #print(delta.shape)
+        #print(dWn.shape)
+        #print(dbn.shape)
+
+
+        dWh[:, :, -1], dbh[:, :, -1], delta[:, :, -1] = \
+            self.hLayer.backprop(self.WL, self.zh[:, :, -1], self.ah[:, :, -1], deltaL)
+        #print(dWn[:,:,-1])
+        #print(dWn[:,:,3])
+
+
+        for i in range(2, self.nn_hlayer_num):
+            dWh[:, :, -i], dbh[:, :, -i], delta[:, :, -i] = \
+                self.hLayer.backprop(self.Wh[:, :, -i+1], self.zh[:, :, -i], self.ah[:, :, -i], delta[:, :, -i+1])
+            #print(i)
+
+        #for i in range(0, self.nn_hlayer_num-1):
+           # print(i)
+           # print(dWn[:, :, i])
+
+        dW1 = X.T.dot(delta[:,:,0])
+        db1 = np.sum(delta[:,:,0])
+
+
+        return dW1, dWL, db1, dbL, dWh, dbh
+
+    def fit_model(self, X, y, epsilon=0.001, num_passes=10000, print_loss=True):
         '''
         fit_model uses backpropagation to train the network
         :param X: input data
@@ -178,6 +238,30 @@ class DeepNeuralNetwork(NeuralNetwork):
         '''
         # Gradient descent.
 
+        for i in range(0, num_passes):
+            # Forward propagation
+            self.feedforward(X, lambda x: self.actFun(x, type=self.actFun_type))
+            # Backpropagation
+            dW1, dWL, db1, dbL, dWh, dbh = self.backprop(X, y)
+
+            # Add regularization terms (b1 and b2 don't have regularization terms)
+            # print(self.reg_lambda)
+            dWL += self.reg_lambda * self.WL
+            dW1 += self.reg_lambda * self.W1
+            dWh += self.reg_lambda * self.Wh
+
+            # Gradient descent parameter update
+            self.W1 += -epsilon * dW1
+            self.b1 += -epsilon * db1
+            self.WL += -epsilon * dWL
+            self.bL += -epsilon * dbL
+            self.Wh += -epsilon * dWh
+            self.bh += -epsilon * dbh
+
+            # Optionally print the loss.
+            # This is expensive because it uses the whole dataset, so we don't want to do it too often.
+            if print_loss and i % 1000 == 0:
+                print("Loss after iteration %i: %f" % (i, self.calculate_loss(X, y)))
 
     def visualize_decision_boundary(self, X, y):
         '''
@@ -188,37 +272,75 @@ class DeepNeuralNetwork(NeuralNetwork):
         '''
         plot_decision_boundary(lambda x: self.predict(x), X, y)
 
-class Layer():
+class Layer(NeuralNetwork):
 
-    def __init__(self, nn_layer_num, nn_hidden_dim, actFun_type='tanh'):
+    def __init__(self, nn_hlayer_num, actFun_type='tanh'):
+        '''
 
-    def feedforward(self):
+        :param nn_hlayer_num: number of hidden layers
+        :param actFun_type: activation function type
+        '''
 
-        return None
-    def backprop(self):
+        self.nn_layer_num = nn_hlayer_num
+        self.actFun_type = actFun_type
 
-        return None
+
+
+    def feedforward(self, X, W, b, i):
+        '''
+        Makes a feedforward step for a single layer
+        :param X: neuron input
+        :param W: Weight of input layer
+        :param b: biases of input layer
+        :param actFun: activation function type
+        :return: returns z and f(z)
+        '''
+
+        #print("X", i, X.shape)
+        #print("W",i ,W.shape)
+        #print("b", i ,b.shape)
+        z = X.dot(W) + b
+        a = self.actFun(z, self.actFun_type)
+        #a = self.actFun_type(z, self.actFun_type)
+        return z, a
+
+    def backprop(self, W, z, a, delta):
+        '''
+        :param W: Weight of previous layer
+        :param z: sum of previous layer
+        :param deltaprev: delta of previous layer
+        :param actFun: activation funtion type
+        :return: deltanext
+        '''
+
+        deltaprev = delta.dot(W.T) * self.diff_actFun(z, type=self.actFun_type)
+        dW = a.T.dot(deltaprev)
+        db = np.sum(deltaprev, axis=0)
+
+        return dW, db, deltaprev
 
 def main():
     # # generate and visualize Make-Moons dataset
 
     X, y = generate_data()
-    plt.scatter(X[:, 0], X[:, 1], s=40, c=y, cmap=plt.cm.Spectral)
+    #plt.scatter(X[:, 0], X[:, 1], s=40, c=y, cmap=plt.cm.Spectral)
 
 
     plt.title("Make-Moon Dataset")
-    plt.show()
+    #plt.show()
 
 
     #Initializes the NN with parameters
-    #model = NeuralNetwork(nn_input_dim=2, nn_hidden_dim=50, nn_output_dim=2, actFun_type='relu')
+    model = DeepNeuralNetwork(nn_input_dim=2, nn_hlayer_num=6, nn_hlayer_dim=6, nn_output_dim=2, actFun_type='tanh', reg_lambda=0.01, seed=0)
+
+
 
 
     #Train on the dataset with the created NN
-    #model.fit_model(X,y)
+    model.fit_model(X,y)
 
 
-    #model.visualize_decision_boundary(X,y)
+    model.visualize_decision_boundary(X,y)
 
 
 if __name__ == "__main__":
