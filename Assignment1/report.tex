@@ -1,8 +1,9 @@
 \documentclass{article}
 \usepackage[left=.75in, right=.75in, top=0.5in, bottom=.75in]{geometry}
-
+\usepackage{graphicx}
 \usepackage{amsmath}
 \usepackage{amssymb}
+\usepackage[section]{placeins}
 \title{COMP 576 - Fall 2017\\ Assignment 1}
 
 \begin{document}
@@ -13,6 +14,13 @@
 \section*{Backpropagation in a Simple Neural Network}
 
 \subsection*{1a) Dataset}
+
+	\begin{figure}[!ht]
+		\centering
+		\includegraphics[width=90mm]{figures/makemoondata.png}
+		\caption{Make Moon Dataset}
+	\end{figure}
+
 
 \subsection*{1b) Derivatives of Activation Functions}
 Sigmoid: 
@@ -120,7 +128,42 @@ Gradients: $\frac{\partial L}{\partial W^{2}}$, $\frac{\partial L}{\partial b^{2
 			\frac{\partial z^2}{\partial a^1}
 			\frac{\partial a^1}{\partial z^1}}_{\frac{1}{N}\delta^2}
 			\overbrace{\frac{\partial z^1}{\partial b^1}}^1\\ \\
-		\boldsymbol{\frac{\partial L}{\partial b^1}} &\boldsymbol{= \frac{1}{N}\delta^2}
+		\boldsymbol{\frac{\partial L}{\partial b^1}} &\boldsymbol{= \frac{1}{N}\delta^2}\\ \\
 	\end{align*}
+	
+\subsection*{1e) Training Network}
+	\begin{figure}[!htb]
+		\centering
+		\includegraphics[width=90mm]{figures/sigmoid.png}
+		\caption{Trained Network Using Sigmoid Activation Function}
+	\end{figure}
+	
+		\begin{figure}[!htb]
+		\centering
+		\includegraphics[width=90mm]{figures/tanh.png}
+		\caption{Trained Network Using Tanh Activation Function}
+	\end{figure}
 
+	\begin{figure}[!htb]
+		\centering
+		\includegraphics[width=90mm]{figures/relu.png}
+		\caption{Trained Network Using ReLu Activation Function}
+	\end{figure}
+
+\subsection*{1e.2Using more Hidden Neurons}
+
+	\begin{figure}[ht]
+		\centering
+		\includegraphics[width=90mm]{figures/tanh_nnh50.png}
+		\caption{Trained Network Using Tanh Activation Function and 50 Hidden Neurons}
+	\end{figure}
+	
+		\begin{figure}[!htbp]
+		\centering
+		\includegraphics[width=90mm]{figures/relu_nnh50.png}
+		\caption{Trained Network Using ReLu Activation Function and 50 Hidden Neurons}
+	\end{figure}
+	
+	Incresing the number of neurons makes it have more degrees of freedome.
+	
 \end{document}
