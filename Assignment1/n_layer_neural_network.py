@@ -227,7 +227,7 @@ class DeepNeuralNetwork(NeuralNetwork):
 
         return dW1, dWL, db1, dbL, dWh, dbh
 
-    def fit_model(self, X, y, epsilon=0.001, num_passes=10000, print_loss=True):
+    def fit_model(self, X, y, epsilon=0.001, num_passes=40000, print_loss=True):
         '''
         fit_model uses backpropagation to train the network
         :param X: input data
@@ -331,7 +331,7 @@ def main():
 
 
     #Initializes the NN with parameters
-    model = DeepNeuralNetwork(nn_input_dim=2, nn_hlayer_num=6, nn_hlayer_dim=6, nn_output_dim=2, actFun_type='tanh', reg_lambda=0.01, seed=0)
+    model = DeepNeuralNetwork(nn_input_dim=2, nn_hlayer_num=10, nn_hlayer_dim=20, nn_output_dim=2, actFun_type='relu', reg_lambda=0.01, seed=0)
 
 
 
