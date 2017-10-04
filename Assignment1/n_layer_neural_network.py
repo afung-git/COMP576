@@ -135,14 +135,14 @@ class DeepNeuralNetwork(NeuralNetwork):
 
         #print(self.nn_hlayer_num-1)
         for i in range(1, self.nn_hlayer_num-1):
-            print("ran")
+            #print("ran")
             self.zh[:, :, i], self.ah[:, :, i] = self.hLayer.feedforward(self.ah[:, :, i-1], self.Wh[:, :, i], self.bh[:, :, i], i)
             #print(np.shape(self.Wh[:,:,1]))
         self.zL = self.ah[:, :, -1].dot(self.WL) + self.bL
 
         exp_scores = np.exp(self.zL)
         self.probs = exp_scores / np.sum(exp_scores, axis=1, keepdims=True)
-        print("yaya")
+        #print("yaya")
         return None
 
     def calculate_loss(self, X, y):
@@ -201,7 +201,7 @@ class DeepNeuralNetwork(NeuralNetwork):
         dWh = np.zeros((self.nn_hlayer_dim, self.nn_hlayer_dim, self.nn_hlayer_num-1))
         dbh = np.zeros((1, self.nn_hlayer_dim, self.nn_hlayer_num-1))
         delta = np.zeros((len(X), self.nn_hlayer_dim, self.nn_hlayer_num-1))
-        print(delta.shape)
+        #print(delta.shape)
         #print(dWn.shape)
         #print(dbn.shape)
 
@@ -227,7 +227,7 @@ class DeepNeuralNetwork(NeuralNetwork):
 
         return dW1, dWL, db1, dbL, dWh, dbh
 
-    def fit_model(self, X, y, epsilon=0.001, num_passes=1, print_loss=True):
+    def fit_model(self, X, y, epsilon=0.001, num_passes=10000, print_loss=True):
         '''
         fit_model uses backpropagation to train the network
         :param X: input data
@@ -296,9 +296,9 @@ class Layer(NeuralNetwork):
         :return: returns z and f(z)
         '''
 
-        print("X", i, X.shape)
-        print("W",i ,W.shape)
-        print("b", i ,b.shape)
+        #print("X", i, X.shape)
+        #print("W",i ,W.shape)
+        #print("b", i ,b.shape)
         z = X.dot(W) + b
         a = self.actFun(z, self.actFun_type)
         #a = self.actFun_type(z, self.actFun_type)
@@ -340,7 +340,7 @@ def main():
     model.fit_model(X,y)
 
 
-    #model.visualize_decision_boundary(X,y)
+    model.visualize_decision_boundary(X,y)
 
 
 if __name__ == "__main__":
