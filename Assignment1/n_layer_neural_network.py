@@ -35,5 +35,191 @@ def plot_decision_boundary(pred_func, X, y):
     plt.scatter(X[:, 0], X[:, 1], c=y, cmap=plt.cm.Spectral)
     plt.show()
 
-class DeepNeuralNetwork(NeuralNetwork):
 
+class DeepNeuralNetwork(NeuralNetwork):
+    """
+    This class inherits from NeuralNetwork and builds a DeepNetwork Class
+    """
+
+    def __init__(self, nn_input_dim, nn_layer_num, nn_hidden_dim, nn_output_dim, actFun_type='tanh', reg_lambda=0.01, seed=0):
+        '''
+        :param nn_input_dim: input dimension
+        :param nn_layer_num: number of hidden layers
+        :param nn_hidden_dim: the number of hidden units
+        :param nn_output_dim: output dimension
+        :param actFun_type: type of activation function. 3 options: 'tanh', 'sigmoid', 'relu'
+        :param reg_lambda: regularization coefficient
+        :param seed: random seed
+        '''
+
+        self.nn_input_dim = nn_input_dim
+        self.nn_layer_num = nn_layer_num
+        self.nn_hidden_dim = nn_hidden_dim - 1  # n-1 weights and bias
+        self.nn_output_dim = nn_output_dim
+        self.actFun_type = actFun_type
+        self.reg_lambda = reg_lambda
+
+        # initialize the weights and biases in the network
+        np.random.seed(seed)
+
+        # initializes weights and biases for Output layer (L) and input layer(1)
+        self.W1 = np.random.randn(self.nn_input_dim, self.nn_hidden_dim) / np.sqrt(self.nn_input_dim)
+        self.b1 = np.zeros((1, self.nn_hidden_dim))
+        self.WL = np.random.randn(self.nn_hidden_dim, self.nn_output_dim) / np.sqrt(self.nn_hidden_dim)
+        self.bL = np.zeros((1, self.nn_output_dim))
+
+        # creates N-dimension array for each W and B for the hidden layers (subtract out first and L layers)
+        if nn_hidden_dim - 2:
+            self.Whidden = np.random.randn(self.nn_hidden_dim, self.nn_hidden_dim, nn_layer_num-2) / \
+                           np.sqrt(self.nn_hidden_dim)
+            self.bhidden = np.zeros((1, self.nn_hidden_dim, nn_layer_num-1))
+
+
+    def actFun(self, z, type):
+        '''
+        actFun computes the activation functions
+        :param z: net input
+        :param type: Tanh, Sigmoid, or ReLU
+        :return: activations
+        '''
+
+        # YOU IMPLMENT YOUR actFun HERE
+        if type == 'tanh':
+            return np.tanh(z)
+        if type == 'sigmoid':
+            return 1 / (1 + np.exp(-z))
+        if type == 'relu':
+            return z * (z > 0)
+
+        return None
+
+    def diff_actFun(self, z, type):
+        '''
+        diff_actFun computes the derivatives of the activation functions wrt the net input
+        :param z: net input
+        :param type: Tanh, Sigmoid, or ReLU
+        :return: the derivatives of the activation functions wrt the net input
+        '''
+
+        # YOU IMPLEMENT YOUR diff_actFun HERE
+        if type == 'tanh':
+            return 1.0 - np.tanh(z) ** 2
+        if type == 'sigmoid':
+            return (1.0 / (1.0 + np.exp(-z))) * (1.0 - (1.0 / (1.0 + np.exp(-z))))
+        if type == "relu":
+            return 1.0 * (z > 0)
+
+        return None
+
+    def feedforward(self, X, actFun):
+        '''
+        feedforward builds a 3-layer neural network and computes the two probabilities,
+        one for class 0 and one for class 1
+        :param X: input data
+        :param actFun: activation function
+        :return:
+        '''
+
+        # YOU IMPLEMENT YOUR feedforward HERE
+        # Layer.feedforward()
+
+        return None
+
+    def calculate_loss(self, X, y):
+        '''
+        calculate_loss computes the loss for prediction
+        :param X: input data
+        :param y: given labels
+        :return: the loss for prediction
+        '''
+        num_examples = len(X)
+
+        self.feedforward(X, lambda x: self.actFun(x, type=self.actFun_type))
+
+        # Calculating the loss
+
+        # YOU IMPLEMENT YOUR CALCULATION OF THE LOSS HERE
+        data_loss = np.sum(-np.log(self.probs[range(num_examples), y]))
+
+        # Add regulatization term to loss (optional)
+        data_loss += self.reg_lambda / 2 * (np.sum(np.square(self.W1)) + np.sum(np.square(self.W2)))
+        return (1. / num_examples) * data_loss
+
+    def predict(self, X):
+        '''
+        predict infers the label of a given data point X
+        :param X: input data
+        :return: label inferred
+        '''
+        self.feedforward(X, lambda x: self.actFun(x, self.actFun_type))
+        return np.argmax(self.probs, axis=1)
+
+    def backprop(self, X, y):
+        '''
+        backprop implements backpropagation to compute the gradients used to update the parameters in the backward step
+        :param X: input data
+        :param y: given labels
+        :return: dL/dW1, dL/b1, dL/dW2, dL/db2
+        '''
+
+        # IMPLEMENT YOUR BACKPROP HERE
+        #Layer.backprop()
+
+        return None
+
+    def fit_model(self, X, y, epsilon=0.001, num_passes=20000, print_loss=True):
+        '''
+        fit_model uses backpropagation to train the network
+        :param X: input data
+        :param y: given labels
+        :param num_passes: the number of times that the algorithm runs through the whole dataset
+        :param print_loss: print the loss or not
+        :return:
+        '''
+        # Gradient descent.
+
+
+    def visualize_decision_boundary(self, X, y):
+        '''
+        visualize_decision_boundary plots the decision boundary created by the trained network
+        :param X: input data
+        :param y: given labels
+        :return:
+        '''
+        plot_decision_boundary(lambda x: self.predict(x), X, y)
+
+class Layer():
+
+    def __init__(self, nn_layer_num, nn_hidden_dim, actFun_type='tanh'):
+
+    def feedforward(self):
+
+        return None
+    def backprop(self):
+
+        return None
+
+def main():
+    # # generate and visualize Make-Moons dataset
+
+    X, y = generate_data()
+    plt.scatter(X[:, 0], X[:, 1], s=40, c=y, cmap=plt.cm.Spectral)
+
+
+    plt.title("Make-Moon Dataset")
+    plt.show()
+
+
+    #Initializes the NN with parameters
+    #model = NeuralNetwork(nn_input_dim=2, nn_hidden_dim=50, nn_output_dim=2, actFun_type='relu')
+
+
+    #Train on the dataset with the created NN
+    #model.fit_model(X,y)
+
+
+    #model.visualize_decision_boundary(X,y)
+
+
+if __name__ == "__main__":
+    main()
