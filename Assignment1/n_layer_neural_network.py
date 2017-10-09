@@ -10,7 +10,7 @@ def generate_data():
     :return: X: input data, y: given labels
     '''
     np.random.seed(0)
-    X, y = datasets.make_moons(200, noise=0.20)
+    X, y = datasets.make_circles(200, noise=0.20)
     return X, y
 
 def plot_decision_boundary(pred_func, X, y):
@@ -41,7 +41,7 @@ class DeepNeuralNetwork(NeuralNetwork):
     This class inherits from NeuralNetwork and builds a DeepNetwork Class
     """
 
-    def __init__(self, nn_input_dim, nn_hlayer_num, nn_hlayer_dim, nn_output_dim, actFun_type='tanh', reg_lambda=0.01, seed=0):
+    def __init__(self, nn_input_dim, nn_hlayer_num, nn_hlayer_dim, nn_output_dim, actFun_type='relu', reg_lambda=0.01, seed=0):
         '''
         :param nn_input_dim: input dimension
         :param nn_hlayer_num: number of hidden layers
@@ -331,7 +331,7 @@ def main():
 
 
     #Initializes the NN with parameters
-    model = DeepNeuralNetwork(nn_input_dim=2, nn_hlayer_num=10, nn_hlayer_dim=20, nn_output_dim=2, actFun_type='relu', reg_lambda=0.01, seed=0)
+    model = DeepNeuralNetwork(nn_input_dim=2, nn_hlayer_num=6, nn_hlayer_dim=10, nn_output_dim=2, actFun_type='relu', reg_lambda=0.01, seed=0)
 
 
 

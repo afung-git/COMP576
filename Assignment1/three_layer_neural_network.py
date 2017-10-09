@@ -66,7 +66,7 @@ class NeuralNetwork(object):
         self.W2 = np.random.randn(self.nn_hidden_dim, self.nn_output_dim) / np.sqrt(self.nn_hidden_dim)
         self.b2 = np.zeros((1, self.nn_output_dim))
 
-    def actFun(self, z, type):
+    def actFun(self, z: object, type: object) -> object:
         '''
         actFun computes the activation functions
         :param z: net input
@@ -174,7 +174,7 @@ class NeuralNetwork(object):
         db1 = np.sum(delta2, axis=0)
         return dW1, dW2, db1, db2
 
-    def fit_model(self, X, y, epsilon=0.001, num_passes=20000, print_loss=True):
+    def fit_model(self, X, y, epsilon=0.01, num_passes=20000, print_loss=True):
         '''
         fit_model uses backpropagation to train the network
         :param X: input data
@@ -226,7 +226,7 @@ def main():
 
 
     #Initializes the NN with parameters
-    model = NeuralNetwork(nn_input_dim=2, nn_hidden_dim=50, nn_output_dim=2, actFun_type='relu')
+    model = NeuralNetwork(nn_input_dim=2, nn_hidden_dim=50, nn_output_dim=2, actFun_type='sigmoid')
 
 
     #Train on the dataset with the created NN
@@ -242,6 +242,15 @@ def main():
     #print(model.z2.shape)
     #print("prob : ", model.probs.shape)
     #print(-np.log(model.probs[range(200)], y))
+
+    #print("delta3: ", model.delta3.shape)
+    #print("X: ", np.shape(X))
+    #print("W1: ", np.shape(model.W1))
+    #print("b1: ", np.shape(model.b1))
+    #print("W2: ", np.shape(model.W2))
+    #print("b2: ", np.shape(model.b2))
+    #print("z1: ", np.shape(model.z1))
+    #print("a1: ", np.shape(model.a1))
 
     model.visualize_decision_boundary(X,y)
 

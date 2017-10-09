@@ -151,12 +151,15 @@ def main():
 
             # Update the events file which is used to monitor the training (in this case,
             # only the training loss is monitored)
-            summary_str = sess.run(summary_op, feed_dict={x: batch[0], y_: batch[1], keep_prob: 0.5})
+            summary_str, wcon1 = sess.run([summary_op, h_fc1], feed_dict={x: batch[0], y_: batch[1], keep_prob: 0.5})
             summary_writer.add_summary(summary_str, i)
             summary_writer.flush()
 
         # save the checkpoints every 1100 iterations
         if i % 1100 == 0 or i == max_step:
+            summary_str, acc = sess.run([summary_op, accuracy], feed_dict={x: batch[0], y_: batch[1], keep_prob: 0.5})
+            summary_writer.add_summary(summary_str, i)
+            summary_writer.flush()
             checkpoint_file = os.path.join(result_dir, 'checkpoint')
             saver.save(sess, checkpoint_file, global_step=i)
 

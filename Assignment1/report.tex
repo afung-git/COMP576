@@ -3,8 +3,9 @@
 \usepackage{graphicx}
 \usepackage{amsmath}
 \usepackage{amssymb}
-\usepackage[section]{placeins}
+\usepackage{float}
 \title{COMP 576 - Fall 2017\\ Assignment 1}
+\author{Alberto Fung - NetID: af31}
 
 \begin{document}
 
@@ -15,9 +16,9 @@
 
 \subsection*{1a) Dataset}
 
-	\begin{figure}[!ht]
+	\begin{figure}[H]
 		\centering
-		\includegraphics[width=90mm]{figures/makemoondata.png}
+		\includegraphics[width=12cm]{figures/makemoondata.png}
 		\caption{Make Moon Dataset}
 	\end{figure}
 
@@ -83,7 +84,7 @@ Gradients: $\frac{\partial L}{\partial W^{2}}$, $\frac{\partial L}{\partial b^{2
 	\\
 		\frac{\partial \hat{y_i}}{\partial z_i^{2}} &= \frac{\partial \left(\frac{e^{z_i^2}}{\sum_{j=1}^Ce^{z_j^2}}\right)}{\partial z_i^2}\\ \\
 		&  \textbf{if }   j = i\\ \\		
-		& = \frac{e^{z_i^2}\sum_{j=1}^Ce^{z_j^2}-e^{z_i^2}e^{z_j^2}}{\left(\sum_{j=1}^Ce^{z_j^2}\right)^2} = \frac{e^{z_i^2}(\sum_{j=1}^Ce^{z_j^2}-e^{z_j^2})}{\sum_{j=1}^Ce^{z_j^2}\sum_{j=1}^Ce^{z_j^2}}\\ \\
+		& = \frac{e^{z_i^2}\sum_{j=1}^Ce^{z_j^2}-e^{z_i^2}e^{z_i^2}}{\left(\sum_{j=1}^Ce^{z_j^2}\right)^2} = \frac{e^{z_i^2}(\sum_{j=1}^Ce^{z_j^2}-e^{z_i^2})}{\sum_{j=1}^Ce^{z_j^2}\sum_{j=1}^Ce^{z_j^2}}\\ \\
 		\boldsymbol{\frac{\partial \hat{y_i}}{\partial z_i^{2}}} & \boldsymbol{=\hat{y_i}(1-\hat{y_i})}
 	\end{align*}
 	\begin{align*}
@@ -94,7 +95,7 @@ Gradients: $\frac{\partial L}{\partial W^{2}}$, $\frac{\partial L}{\partial b^{2
 	\\
 		\frac{\partial L}{\partial \hat{y_i}} &= -\frac{1}{N}\sum_{n=1}^N\sum_{i=1}^C\frac{\partial (y_i\log{\hat{y_i}})}{\partial \hat{y_i}} = -\frac{1}{N}\sum_{n=1}^N\sum_{i=1}^C y_i \left(\frac{1}{\hat{y_i}} \right) \frac{\partial \hat{y_i}}			  			{\partial z_i^2}\\ \\
 		&  \forall i \\ \\
-		&= -\frac{1}{N}\sum_{n=1}^N \left[  \frac{ y_i}{\hat{y_i}} \left(1-\hat{y_i} \right) + \sum_{j\neq i}^C \frac{y_j}{\hat{y_j}}  (-\hat{y_j}\hat{y_i}) \right]\\ \\
+		&= -\frac{1}{N}\sum_{n=1}^N \left[  \frac{ y_i}{\hat{y_i}} \hat{y_i} \left(1-\hat{y_i} \right) + \sum_{j\neq i}^C \frac{y_j}{\hat{y_j}}  (-\hat{y_j}\hat{y_i}) \right]\\ \\
 		&= -\frac{1}{N}\sum_{n=1}^N \left[ y_i(1-\hat{y_i}) - \sum_{j\neq i}^C y_j\hat{y_i} \right]\\ \\
 		&= \frac{1}{N}\sum_{n=1}^N \left[ -y_i+y_i\hat{y_i} +  \sum_{j\neq i}^Cy_j\hat{y_i} \right]\\
 		&= \frac{1}{N}\sum_{n=1}^N \left[ -y_i+ \sum_{j= 1}^Cy_j\hat{y_i} \right]\\ \\
@@ -132,38 +133,198 @@ Gradients: $\frac{\partial L}{\partial W^{2}}$, $\frac{\partial L}{\partial b^{2
 	\end{align*}
 	
 \subsection*{1e) Training Network}
-	\begin{figure}[!htb]
+	\begin{figure}[H]
 		\centering
-		\includegraphics[width=90mm]{figures/sigmoid.png}
-		\caption{Trained Network Using Sigmoid Activation Function}
+		\includegraphics[width=12cm]{figures/sigmoid.png}
+		\caption{Using Sigmoid Activation Function with 3 Hidden Neurons and stepsize = 0.01}
 	\end{figure}
 	
-		\begin{figure}[!htb]
+	\begin{figure}[H]
 		\centering
-		\includegraphics[width=90mm]{figures/tanh.png}
-		\caption{Trained Network Using Tanh Activation Function}
+		\includegraphics[width=12cm]{figures/tanh.png}
+		\caption{Using Tanh Activation Function with 3 Hidden Neurons and stepsize = 0.01}
 	\end{figure}
 
-	\begin{figure}[!htb]
+	\begin{figure}[H]
 		\centering
-		\includegraphics[width=90mm]{figures/relu.png}
-		\caption{Trained Network Using ReLu Activation Function}
+		\includegraphics[width=12cm]{figures/relu.png}
+		\caption{Using ReLu Activation Function with 3 Hidden Neurons and stepsize = 0.01}
+	\end{figure}
+	
+\paragraph*{\\ \\Training Using more Neurons}.
+
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=12cm]{figures/sigmoid_nnh50.png}
+		\caption{Using Sigmoid Activation Function with 50 Hidden Neurons and stepsize = 0.01}
 	\end{figure}
 
-\subsection*{1e.2Using more Hidden Neurons}
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=12cm]{figures/Tanh_nnh50.png}
+		\caption{Using Tanh Activation Function with 50 Hidden Neurons and stepsize = 0.01}
+	\end{figure}
 
-	\begin{figure}[ht]
+	\begin{figure}[H]
 		\centering
-		\includegraphics[width=90mm]{figures/tanh_nnh50.png}
-		\caption{Trained Network Using Tanh Activation Function and 50 Hidden Neurons}
+		\includegraphics[width=12cm]{figures/ReLu_nnh50.png}
+		\caption{Using ReLu Activation Function with 50 Hidden Neurons and stepsize = 0.01}
 	\end{figure}
-	
-		\begin{figure}[!htbp]
+
+As you increase the number of neurons in the hidden layer, the decision boundary improves in both cases where the activation function is Tanh and ReLu, where as the Sigmoid case remains constant. In both Tanh and ReLu accuracy increased when the number of hidden was increased. 
+
+\subsection*{1f) Training a Deep Network}
+
+	\begin{figure}[H]
 		\centering
-		\includegraphics[width=90mm]{figures/relu_nnh50.png}
-		\caption{Trained Network Using ReLu Activation Function and 50 Hidden Neurons}
+		\includegraphics[width=12cm]{figures/Deep_sigmoid_10_20.png}
+		\caption{Using Sigmoid Activation Function with 10 Hidden Layers and 20 Hidden Neurons/layer and stepsize = 0.01}
 	\end{figure}
-	
-	Incresing the number of neurons makes it have more degrees of freedome.
-	
+The sigmoid function with this architecture performed so poorly that it was not able to draw a decision boundary seperating the dataset
+
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=12cm]{figures/Deep_tanh_10_20.png}
+		\caption{Using Tanh Activation Function with 10 Hidden Layers and 20 Hidden Neurons/layer and stepsize = 0.01}
+	\end{figure}
+
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=12cm]{figures/Deep_Relu_10_20.png}
+		\caption{Using ReLu Activation Function with 10 Hidden Layers and 20 Hidden Neurons/layer and stepsize = 0.01}
+	\end{figure}
+
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=12cm]{figures/Deep_sigmoid_2_10.png}
+		\caption{Using Sigmoid Activation Function with 2 Hidden Layers and 10 Hidden Neurons/layer and stepsize = 0.01}
+	\end{figure}
+
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=12cm]{figures/Deep_tanh_2_10.png}
+		\caption{Using Tanh Activation Function with 2 Hidden Layers and 10 Hidden Neurons/layer and stepsize = 0.01}
+	\end{figure}
+Using a deep Network the ReLu activation function works the best. In both the Sigmoid and Tanh activation cases, having a deeper network produces worse results.
+
+Training with a new dataset. I decided to use the make circle dataset to see how well the network performs where seperation is highly non-linear.
+
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=12cm]{figures/sigmoid2.png}
+		\caption{Using Sigmoid Activation Function with 2 Hidden Layers and 10 Hidden Neurons/layer and stepsize = 0.01}
+	\end{figure}
+
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=12cm]{figures/relu2.png}
+		\caption{Using ReLu Activation Function with 2 Hidden Layers and 10 Hidden Neurons/layer and stepsize = 0.01}
+	\end{figure}
+
+
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=12cm]{figures/relu3.png}
+		\caption{Using ReLu Activation Function with 6 Hidden Layers and 10 Hidden Neurons/layer and stepsize = 0.01}
+	\end{figure}
+
+Once again, the ReLu activation functions performs the best. Also as you increase the depth of the network the performance starts the decrease\\\\
+
+\section*{Training a Simple Deep Convolutional Network on MNIST}
+\subsection*{2.a) Final Test Accuracy}
+The final Test accuracy for this run is 0.9865
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=12cm]{figures/tensorboard1.png}
+		\caption{Training Loss}
+	\end{figure}
+
+\subsection*{2.b) More on Visualizing Your Training}
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=13cm]{figures/1a.png}
+	\end{figure}
+
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=13cm]{figures/2a.png}
+	\end{figure}
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=13cm]{figures/3a.png}
+	\end{figure}
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=13cm]{figures/4a.png}
+	\end{figure}
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=13cm]{figures/5a.png}
+	\end{figure}
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=13cm]{figures/6a.png}
+	\end{figure}
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=13cm]{figures/7a.png}
+	\end{figure}
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=13cm]{figures/8a.png}
+	\end{figure}
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=13cm]{figures/9a.png}
+	\end{figure}
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=13cm]{figures/10a.png}
+	\end{figure}
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=13cm]{figures/11a.png}
+	\end{figure}
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=13cm]{figures/12a.png}
+	\end{figure}
+\subsection*{2.c) Time for More Fun!!!}
+Training with Tanh activation function and momentum optimizer. A final accuracy of 0.9125
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=13cm]{figures/13.png}
+	\end{figure}
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=13cm]{figures/13a.png}
+	\end{figure}
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=13cm]{figures/14a.png}
+	\end{figure}
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=13cm]{figures/15a.png}
+	\end{figure}
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=13cm]{figures/16a.png}
+	\end{figure}
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=13cm]{figures/17a.png}
+	\end{figure}
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=13cm]{figures/18a.png}
+	\end{figure}
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=13cm]{figures/19a.png}
+	\end{figure}
+	\begin{figure}[H]
+		\centering
+		\includegraphics[width=13cm]{figures/20a.png}
+	\end{figure}
 \end{document}
