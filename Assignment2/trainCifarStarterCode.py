@@ -33,7 +33,7 @@ def bias_variable(shape):
     '''
 
     # IMPLEMENT YOUR BIAS_VARIABLE HERE
-    initial = tf.Constant(0.1, shape=shape)
+    initial = tf.constant(0.1, shape=shape)
 
     return tf.Variable(initial)
 
@@ -54,7 +54,7 @@ def conv2d(x, W):
     '''
 
     # IMPLEMENT YOUR CONV2D HERE
-    h_conv = tf.nn.conv2d(x, W, strides=[1,1,1,1], padding = 'SAME')
+    h_conv = tf.nn.conv2d(x, W, strides=[1, 1, 1, 1], padding='SAME')
 
     return h_conv
 
@@ -66,16 +66,16 @@ def max_pool_2x2(x):
     '''
 
     # IMPLEMENT YOUR MAX_POOL_2X2 HERE
-    h_max = tf.nn.max_pool(x, ksize=[1,2,2,1], strides=[1,2,2,1], padding='SAME')
+    h_max = tf.nn.max_pool(x, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding='SAME')
 
     return h_max
 
 
 # Loading CIFAR10 images from director
 
-ntrain =  1000
-ntest =  100
-nclass =  10
+ntrain = 1000
+ntest = 100
+nclass = 10
 imsize = 28
 nchannels = 1
 batchsize = 50
@@ -89,14 +89,14 @@ itrain = -1
 itest = -1
 for iclass in range(0, nclass):
     for isample in range(0, ntrain):
-        path = '~/CIFAR10/Train/%d/Image%05d.png' % (iclass,isample)
+        path = 'Data/CIFAR10/Train/%d/Image%05d.png' % (iclass,isample)
         im = misc.imread(path); # 28 by 28
         im = im.astype(float)/255
         itrain += 1
         Train[itrain,:,:,0] = im
         LTrain[itrain,iclass] = 1 # 1-hot lable
     for isample in range(0, ntest):
-        path = '~/CIFAR10/Test/%d/Image%05d.png' % (iclass,isample)
+        path = 'Data/CIFAR10/Test/%d/Image%05d.png' % (iclass,isample)
         im = misc.imread(path); # 28 by 28
         im = im.astype(float)/255
         itest += 1
@@ -111,8 +111,8 @@ for iclass in range(0, nclass):
 
 sess = tf.InteractiveSession()
 
-tf_data = tf.placeholder(tf.float32, shape=[None, imsize, imsize, nchannels]) #tf variable for the data, remember shape is [None, width, height, numberOfChannels]
-tf_labels = tf.placeholder(tf.float32, shape=[None, nclass]) #tf variable for labels
+tf_data = tf.placeholder(tf.float32, shape=[None, imsize, imsize, nchannels])  #tf variable for the data, remember shape is [None, width, height, numberOfChannels]
+tf_labels = tf.placeholder(tf.float32, shape=[None, nclass])  #tf variable for labels
 
 # --------------------------------------------------
 # model
@@ -125,7 +125,7 @@ x_image = tf.reshape(tf_data, [-1, imsize, imsize, nchannels])
 
 # Conv layer with kernel 5x5 and 32 filter maps followed by ReLu activation
 W_conv1 = weight_variable([5, 5, nchannels, 32])
-b_conv1 = bias_variable(32)
+b_conv1 = bias_variable([32])
 h_conv1 = tf.nn.relu(conv2d(x_image, W_conv1) + b_conv1)
 # Max Pooling layer subsampling by 2
 h_pool1 = max_pool_2x2(h_conv1)
@@ -133,8 +133,8 @@ h_pool1 = max_pool_2x2(h_conv1)
 # Second Layer
 
 # Conv layer with kernal 5x5 and 64 filter maps followed by ReLu activation
-W_conv2 = weight_variable([5, 5, nchannels, 64])
-b_conv2 = bias_variable(64)
+W_conv2 = weight_variable([5, 5, 32, 64])
+b_conv2 = bias_variable([64])
 h_conv2 = tf.nn.relu(conv2d(h_pool1, W_conv2) + b_conv2)
 h_pool2 = max_pool_2x2(h_conv2)
 
@@ -145,6 +145,10 @@ b_fc1 = bias_variable([1024])
 h_pool2_flat = tf.reshape(h_pool2, [-1, 7*7*64])
 h_fc1 = tf.nn.relu(tf.matmul(h_pool2_flat, W_fc1) + b_fc1)
 
+# dropout
+keep_prob = tf.placeholder(tf.float32)
+h_fc1_drop = tf.nn.dropout(h_fc1, keep_prob)
+
 # Second FC layer that has 1024 input and output 10 classes
 W_fc2 = weight_variable([1024, 10])
 b_fc2 = bias_variable([10])
@@ -153,32 +157,34 @@ y_conv = tf.matmul(h_fc1, W_fc2) + b_fc2
 
 # --------------------------------------------------
 # loss
+cross_entropy = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=tf_labels, logits=y_conv))
 #set up the loss, optimization, evaluation, and accuracy
 
+optimizer = tf.train.AdamOptimizer(1e-4).minimize(cross_entropy)
+correct_prediction = tf.equal(tf.argmax(y_conv, 1), tf.arg_max(tf_labels,1))
+accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
 
 # --------------------------------------------------
 # optimization
 
-sess.run(tf.initialize_all_variables())
-batch_xs = #setup as [batchsize, width, height, numberOfChannels] and use np.zeros()
-batch_ys = #setup as [batchsize, the how many classes] 
-for i in range(): # try a small iteration size once it works then continue
+sess.run(tf.global_variables_initializer())
+batch_xs = np.zeros([batchsize, imsize, imsize, nchannels])  #setup as [batchsize, width, height, numberOfChannels] and use np.zeros()
+batch_ys = np.zeros([batchsize, nclass])  #setup as [batchsize, the how many classes]
+nsamples = ntrain*nclass
+for i in range(10000):  # try a small iteration size once it works then continue
     perm = np.arange(nsamples)
     np.random.shuffle(perm)
     for j in range(batchsize):
         batch_xs[j,:,:,:] = Train[perm[j],:,:,:]
         batch_ys[j,:] = LTrain[perm[j],:]
-    if i%10 == 0:
+    if i%100 == 0:
         #calculate train accuracy and print it
-    optimizer.run(feed_dict={}) # dropout only during training
+        print("Train accuracy %g, after %d:" % (accuracy.eval(feed_dict={tf_data: batch_xs, tf_labels: batch_ys, keep_prob: 1.0}), i))
+    optimizer.run(feed_dict={tf_data: batch_xs, tf_labels: batch_ys, keep_prob: 0.5}) # dropout only during training
 
 # --------------------------------------------------
 # test
 
-
-
-
-print("test accuracy %g"%accuracy.eval(feed_dict={tf_data: Test, tf_labels: LTest, keep_prob: 1.0}))
-
+print("test accuracy %g" % accuracy.eval(feed_dict={tf_data: Test, tf_labels: LTest, keep_prob: 1.0}))
 
 sess.close()
