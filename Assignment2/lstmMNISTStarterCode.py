@@ -4,17 +4,17 @@ import numpy as np
 
 from tensorflow.examples.tutorials.mnist import input_data
 
-mnist = #call mnist function
+mnist = input_data.read_data_sets('MNIST_data', one_hot=True)  #call mnist function
 
-learningRate = 
-trainingIters = 
-batchSize = 
-displayStep = 
+learningRate = .001
+trainingIters = 1000
+batchSize = 50
+displayStep = 1000
 
-nInput = #we want the input to take the 28 pixels
-nSteps = #every 28
-nHidden = #number of neurons for the RNN
-nClasses = #this is MNIST so you know
+nInput = 28  #we want the input to take the 28 pixels
+nSteps = 28  #every 28
+nHidden = 10 #number of neurons for the RNN
+nClasses = 10 #this is MNIST so you know
 
 x = tf.placeholder('float', [None, nSteps, nInput])
 y = tf.placeholder('float', [None, nClasses])
@@ -43,11 +43,12 @@ pred = RNN(x, weights, biases)
 #optimization
 #create the cost, optimization, evaluation, and accuracy
 #for the cost softmax_cross_entropy_with_logits seems really good
-cost = 
-optimizer = 
+cost = tf.nn.softmax_cross_entropy_with_logits(labels=y, logits=pred)
 
-correctPred = 
-accuracy = 
+optimizer = tf.train.AdamOptimizer(1e-4).minimize(cost)
+
+correctPred = tf.equal(tf.arg_max(pred,1), tf.arg_max(pred,1))
+accuracy = tf.reduce_mean(tf.cast(correctPred, tf.float32))
 
 init = tf.initialize_all_variables()
 
@@ -56,14 +57,15 @@ with tf.Session() as sess:
 	step = 1
 
 	while step* batchSize < trainingIters:
-		batchX, batchY = #mnist has a way to get the next batch
+		batchX, batchY = mnist.train.next_batch(50)  #mnist has a way to get the next batch
 		batchX = batchX.reshape((batchSize, nSteps, nInput))
 
-		sess.run(optimizer, feed_dict={})
+		sess.run(optimizer, feed_dict={x: batchX, y: batchY})
+
 
 		if step % displayStep == 0:
-			acc = 
-			loss = 
+			acc =
+			loss =
 			print("Iter " + str(step*batchSize) + ", Minibatch Loss= " + \
                   "{:.6f}".format() + ", Training Accuracy= " + \
                   "{:.5f}".format())
@@ -73,4 +75,4 @@ with tf.Session() as sess:
 	testData = mnist.test.images.reshape((-1, nSteps, nInput))
 	testLabel = mnist.test.labels
 	print("Testing Accuracy:", \
-        sess.run(accuracy, feed_dict={}))
+        sess.run(accuracy, feed_dict={x: mnist.test.images, y: mnist.test.labels}))
