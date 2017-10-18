@@ -30,11 +30,12 @@ biases = {
 def RNN(x, weights, biases):
 	x = tf.transpose(x, [1,0,2])
 	x = tf.reshape(x, [-1, nInput])
-	#x = tf.split(0, nSteps, x) #configuring so you can get it as needed for the 28 pixels
+	x = tf.split(0, nSteps, x) #configuring so you can get it as needed for the 28 pixels
 
-	lstmCell = rnn.BasicLSTMCell(nHidden, forget_bias=1.0)  #find which lstm to use in the documentation
+	#lstmCell = rnn.BasicLSTMCell(nHidden, forget_bias=1.0)  #find which lstm to use in the documentation
+	rnnCell = tf.contrib.rnn.BasicRNNCell(nHidden)
 
-	outputs, states = rnn.static_rnn(lstmCell, x, dtype=tf.float32) #for the rnn where to get the output and hidden state
+	outputs, states = tf.contrib.rnn.static_rnn(rnnCell, x, dtype=tf.float32) #for the rnn where to get the output and hidden state
 
 	return tf.matmul(outputs[-1], weights['out'])+ biases['out']
 
@@ -64,8 +65,7 @@ with tf.Session() as sess:
 
 
 		if step % displayStep == 0:
-			acc = sess.run(accuracy, feed_dict={x: batchX, y: batchY})
-			loss = sess.run(cost, feed_dict={x: batchX, y:batchY})
+			loss, acc = sess.run([cost, accuracy], feed_dict={x: batchX, y: batchY})
 			print("Iter " + str(step*batchSize) + ", Minibatch Loss= " + \
                   "{:.6f}".format() + ", Training Accuracy= " + \
                   "{:.5f}".format())
