@@ -1,5 +1,5 @@
 import tensorflow as tf 
-from tensorflow.python.ops import rnn, rnn_cell
+from tensorflow.contrib import rnn  #, #rnn_cell
 import numpy as np 
 
 from tensorflow.examples.tutorials.mnist import input_data
@@ -30,11 +30,11 @@ biases = {
 def RNN(x, weights, biases):
 	x = tf.transpose(x, [1,0,2])
 	x = tf.reshape(x, [-1, nInput])
-	x = tf.split(0, nSteps, x) #configuring so you can get it as needed for the 28 pixels
+	#x = tf.split(0, nSteps, x) #configuring so you can get it as needed for the 28 pixels
 
-	lstmCell = #find which lstm to use in the documentation
+	lstmCell = rnn.BasicLSTMCell(nHidden, forget_bias=1.0)  #find which lstm to use in the documentation
 
-	outputs, states = #for the rnn where to get the output and hidden state 
+	outputs, states = rnn.static_rnn(lstmCell, x, dtype=tf.float32) #for the rnn where to get the output and hidden state
 
 	return tf.matmul(outputs[-1], weights['out'])+ biases['out']
 
@@ -45,9 +45,9 @@ pred = RNN(x, weights, biases)
 #for the cost softmax_cross_entropy_with_logits seems really good
 cost = tf.nn.softmax_cross_entropy_with_logits(labels=y, logits=pred)
 
-optimizer = tf.train.AdamOptimizer(1e-4).minimize(cost)
+optimizer = tf.train.GradientDescentOptimizer(learning_rate=learningRate).minimize(cost)
 
-correctPred = tf.equal(tf.arg_max(pred,1), tf.arg_max(pred,1))
+correctPred = tf.equal(tf.arg_max(pred,1), tf.arg_max(y,1))
 accuracy = tf.reduce_mean(tf.cast(correctPred, tf.float32))
 
 init = tf.initialize_all_variables()
@@ -64,8 +64,8 @@ with tf.Session() as sess:
 
 
 		if step % displayStep == 0:
-			acc =
-			loss =
+			acc = sess.run(accuracy, feed_dict={x: batchX, y: batchY})
+			loss = sess.run(cost, feed_dict={x: batchX, y:batchY})
 			print("Iter " + str(step*batchSize) + ", Minibatch Loss= " + \
                   "{:.6f}".format() + ", Training Accuracy= " + \
                   "{:.5f}".format())
