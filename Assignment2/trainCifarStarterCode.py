@@ -77,12 +77,12 @@ def max_pool_2x2(x):
 
 # Loading CIFAR10 images from director
 
-ntrain = 1000
+ntrain = 8000
 ntest = 100
 nclass = 10
 imsize = 28
 nchannels = 1
-batchsize = 64
+batchsize = 512
 
 Train = np.zeros((ntrain*nclass,imsize,imsize,nchannels))
 Test = np.zeros((ntest*nclass,imsize,imsize,nchannels))
@@ -170,8 +170,9 @@ y_conv = tf.matmul(h_fc1_drop, W_fc2) + b_fc2
 cross_entropy = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=tf_labels, logits=y_conv))
 #set up the loss, optimization, evaluation, and accuracy
 
-#optimizer = tf.train.AdamOptimizer(1e-4).minimize(cross_entropy)
-optimizer = tf.train.RMSPropOptimizer(1e-3).minimize(cross_entropy)
+optimizer = tf.train.AdamOptimizer(1e-4).minimize(cross_entropy) #.62 after mirror augmentation
+#optimizer = tf.train.RMSPropOptimizer(1e-3).minimize(cross_entropy)
+#optimizer = tf.train.MomentumOptimizer(.01, .8).minimize(cross_entropy)
 
 correct_prediction = tf.equal(tf.argmax(y_conv, 1), tf.arg_max(tf_labels, 1))
 accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
@@ -195,7 +196,7 @@ sess.run(tf.global_variables_initializer())
 batch_xs = np.zeros([batchsize, imsize, imsize, nchannels])  #setup as [batchsize, width, height, numberOfChannels] and use np.zeros()
 batch_ys = np.zeros([batchsize, nclass])  #setup as [batchsize, the how many classes]
 nsamples = ntrain*nclass
-for i in range(20000):  # try a small iteration size once it works then continue
+for i in range(40000):  # try a small iteration size once it works then continue
     perm = np.arange(nsamples)
     np.random.shuffle(perm)
     for j in range(batchsize):
@@ -222,7 +223,7 @@ for i in range(20000):  # try a small iteration size once it works then continue
     if i%1000 == 0:
         print("Test accuracy: %g" % accuracy.eval(feed_dict={tf_data: Test, tf_labels: LTest, layer1_drop: 1.0,
                                                          layer2_drop: 1.0, fc1_drop: 1.0}))
-    optimizer.run(feed_dict={tf_data: batch_xs, tf_labels: batch_ys, layer1_drop: 1.0, layer2_drop: 1.0, fc1_drop: 0.5}) # dropout only during training
+    optimizer.run(feed_dict={tf_data: batch_xs, tf_labels: batch_ys, layer1_drop: 1.0, layer2_drop: 1.0, fc1_drop: 0.3}) # dropout only during training
 
 # --------------------------------------------------
 # test
