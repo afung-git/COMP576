@@ -77,12 +77,12 @@ def max_pool_2x2(x):
 
 # Loading CIFAR10 images from director
 
-ntrain = 8000
+ntrain = 1000
 ntest = 100
 nclass = 10
 imsize = 28
 nchannels = 1
-batchsize = 512
+batchsize = 64
 
 Train = np.zeros((ntrain*nclass,imsize,imsize,nchannels))
 Test = np.zeros((ntest*nclass,imsize,imsize,nchannels))
@@ -132,18 +132,21 @@ x_image = tf.reshape(tf_data, [-1, imsize, imsize, nchannels])
 # First Layer
 
 # Conv layer with kernel 5x5 and 32 filter maps followed by ReLu activation
-W_conv1 = weight_variable([5, 5, nchannels, 32])
+W_conv1 = weight_variable([3, 3, nchannels, 32])
 b_conv1 = bias_variable([32])
 h_conv1 = tf.nn.relu(conv2d(x_image, W_conv1) + b_conv1)
 # Max Pooling layer subsampling by 2
 h_pool1 = max_pool_2x2(h_conv1)
 h_pool1 = tf.nn.dropout(h_pool1, layer1_drop)
 
+# norm1
+#norm1 = tf.nn.lrn(pool1, 4, bias=1.0, alpha=0.001 / 9.0, beta=0.75, name='norm1')
+
 
 # Second Layer
 
 # Conv layer with kernal 5x5 and 64 filter maps followed by ReLu activation
-W_conv2 = weight_variable([5, 5, 32, 64])
+W_conv2 = weight_variable([3, 3, 32, 64])
 b_conv2 = bias_variable([64])
 h_conv2 = tf.nn.relu(conv2d(h_pool1, W_conv2) + b_conv2)
 h_pool2 = max_pool_2x2(h_conv2)
@@ -196,7 +199,7 @@ sess.run(tf.global_variables_initializer())
 batch_xs = np.zeros([batchsize, imsize, imsize, nchannels])  #setup as [batchsize, width, height, numberOfChannels] and use np.zeros()
 batch_ys = np.zeros([batchsize, nclass])  #setup as [batchsize, the how many classes]
 nsamples = ntrain*nclass
-for i in range(40000):  # try a small iteration size once it works then continue
+for i in range(20000):  # try a small iteration size once it works then continue
     perm = np.arange(nsamples)
     np.random.shuffle(perm)
     for j in range(batchsize):
@@ -223,7 +226,8 @@ for i in range(40000):  # try a small iteration size once it works then continue
     if i%1000 == 0:
         print("Test accuracy: %g" % accuracy.eval(feed_dict={tf_data: Test, tf_labels: LTest, layer1_drop: 1.0,
                                                          layer2_drop: 1.0, fc1_drop: 1.0}))
-    optimizer.run(feed_dict={tf_data: batch_xs, tf_labels: batch_ys, layer1_drop: 1.0, layer2_drop: 1.0, fc1_drop: 0.3}) # dropout only during training
+    optimizer.run(feed_dict={tf_data: batch_xs, tf_labels: batch_ys, layer1_drop: 1.0, layer2_drop: 1.0, fc1_drop: .3}) # dropout only during training
+    #.57 with .2 dropout
 
 # --------------------------------------------------
 # test
