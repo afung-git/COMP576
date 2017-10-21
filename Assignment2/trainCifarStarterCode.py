@@ -77,7 +77,7 @@ def max_pool_2x2(x):
 
 # Loading CIFAR10 images from director
 
-ntrain = 1000
+ntrain = 2000
 ntest = 100
 nclass = 10
 imsize = 28
@@ -140,7 +140,7 @@ h_pool1 = max_pool_2x2(h_conv1)
 h_pool1 = tf.nn.dropout(h_pool1, layer1_drop)
 
 # norm1
-#norm1 = tf.nn.lrn(pool1, 4, bias=1.0, alpha=0.001 / 9.0, beta=0.75, name='norm1')
+h_pool1 = tf.nn.lrn(h_pool1, 4, bias=1.0, alpha=0.001 / 9.0, beta=0.75, name='h_pool1')
 
 
 # Second Layer
@@ -152,12 +152,18 @@ h_conv2 = tf.nn.relu(conv2d(h_pool1, W_conv2) + b_conv2)
 h_pool2 = max_pool_2x2(h_conv2)
 h_pool2 = tf.nn.dropout(h_pool2, layer2_drop)
 
+# norm1
+h_pool2 = tf.nn.lrn(h_pool2, 4, bias=1.0, alpha=0.001 / 9.0, beta=0.75, name='h_pool2')
+
 # FC layer that has input 7*7*64 vector and output 1024
 W_fc1 = weight_variable([7*7*64, 1024])
 b_fc1 = bias_variable([1024])
 # flatten h_pool2 back to a 1xn vector
 h_pool2_flat = tf.reshape(h_pool2, [-1, 7*7*64])
 h_fc1 = tf.nn.relu(tf.matmul(h_pool2_flat, W_fc1) + b_fc1)
+
+# norm1
+#h_fc1 = tf.nn.lrn(h_fc1, 2, bias=1.0, alpha=0.001 / 9.0, beta=0.75, name='h_fc1')
 
 # dropout
 h_fc1_drop = tf.nn.dropout(h_fc1, fc1_drop)
@@ -173,9 +179,9 @@ y_conv = tf.matmul(h_fc1_drop, W_fc2) + b_fc2
 cross_entropy = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=tf_labels, logits=y_conv))
 #set up the loss, optimization, evaluation, and accuracy
 
-optimizer = tf.train.AdamOptimizer(1e-4).minimize(cross_entropy) #.62 after mirror augmentation
+#optimizer = tf.train.AdamOptimizer(1e-4).minimize(cross_entropy) #.62 after mirror augmentation
 #optimizer = tf.train.RMSPropOptimizer(1e-3).minimize(cross_entropy)
-#optimizer = tf.train.MomentumOptimizer(.01, .8).minimize(cross_entropy)
+optimizer = tf.train.MomentumOptimizer(.01, .9).minimize(cross_entropy)
 
 correct_prediction = tf.equal(tf.argmax(y_conv, 1), tf.arg_max(tf_labels, 1))
 accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
