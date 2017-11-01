@@ -1,6 +1,6 @@
 import tensorflow as tf 
 from tensorflow.contrib import rnn  #, #rnn_cell
-import numpy as np
+import matplotlib.pyplot as plt
 import random
 
 from tensorflow.examples.tutorials.mnist import input_data
@@ -9,7 +9,7 @@ random.seed(3)
 mnist = input_data.read_data_sets('MNIST_data', one_hot=True)  #call mnist function
 
 learningRate = .02 #.01 .001
-trainingIters = 2000000
+trainingIters = 4000000
 batchSize = 280
 displayStep = 100
 
@@ -34,9 +34,9 @@ def RNN(x, weights, biases):
 	x = tf.reshape(x, [-1, nInput])
 	x = tf.split(value=x, num_or_size_splits=nSteps, axis=0) #configuring so you can get it as needed for the 28 pixels
 
-	#lstmCell = rnn.BasicLSTMCell(nHidden, forget_bias=1.0)  #find which lstm to use in the documentation
+	lstmCell = rnn.BasicLSTMCell(nHidden, forget_bias=1.0)  #find which lstm to use in the documentation
 	#lstmCell = rnn.BasicRNNCell(nHidden)	#Basic RNN
-	lstmCell = rnn.GRUCell(nHidden)			#GRU Cell
+	#lstmCell = rnn.GRUCell(nHidden)			#GRU Cell
 
 	outputs, states = tf.contrib.rnn.static_rnn(lstmCell, x, dtype=tf.float32) #for the rnn where to get the output and hidden state
 
@@ -63,6 +63,11 @@ with tf.Session() as sess:
 	testData = mnist.test.images.reshape((-1, nSteps, nInput))
 	testLabel = mnist.test.labels
 
+	trainHist = []
+	testHist = []
+	stepHist = []
+	centropyHist = []
+
 	while step* batchSize < trainingIters:
 		batchX, batchY = mnist.train.next_batch(batchSize)  #mnist has a way to get the next batch
 		batchX = batchX.reshape((batchSize, nSteps, nInput))
@@ -76,9 +81,30 @@ with tf.Session() as sess:
 			testacc = sess.run(accuracy, feed_dict={x: testData, y: testLabel})
 			print("Iter " + str(step*batchSize) + ", Minibatch Loss= " + "{:0.5f}".format(loss)
 				  + ", Training Accuracy= " + "{:0.5f}".format(acc) + ", Test Accuracy= " + "{:0.5f}".format(testacc))
+
+			trainHist.append(acc)
+			testHist.append(testacc)
+			centropyHist.append(loss)
+			stepHist.append(step)
+
 		step +=1
 	print('Optimization finished')
 
 
 	print("Testing Accuracy:", \
         sess.run(accuracy, feed_dict={x: testData, y: testLabel}))
+
+	plt.plot(stepHist, trainHist, 'r', label='Train')
+	plt.plot(stepHist, testHist, 'b', label='Test')
+	plt.legend(loc='best')
+	plt.ylabel('Accuracy')
+	plt.ylim(0, 1)
+	plt.grid()
+	ax2 = plt.twinx()
+	ax2.plot(stepHist, centropyHist, 'g', label='Loss')
+	ax2.legend(loc=0)
+	ax2.set_ylabel('Cross Entropy Loss')
+
+	plt.xlabel('Training Steps')
+
+	plt.show()

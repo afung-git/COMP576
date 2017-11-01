@@ -3,7 +3,6 @@ import numpy as np
 import tensorflow as tf
 import random
 import matplotlib.pyplot as plt
-import matplotlib as mp
 import os
 
 # --------------------------------------------------
@@ -74,15 +73,26 @@ def max_pool_2x2(x):
 
     return h_max
 
+def variable_summaries(var):
+    with tf.name_scope('summary'):
+        mean = tf.reduce_mean(var)
+        tf.summary.scalar('mean', mean)
+        with tf.name_scope('stddev'):
+            stddev = tf.sqrt(tf.reduce_mean(tf.square(var - mean)))
+        tf.summary.scalar('stddev', stddev)
+        tf.summary.scalar('max', tf.reduce_max(var))
+        tf.summary.scalar('min', tf.reduce_min(var))
+        tf.summary.histogram('histogram', var)
+
 
 # Loading CIFAR10 images from director
 
-ntrain = 2000
+ntrain = 12000
 ntest = 100
 nclass = 10
 imsize = 28
 nchannels = 1
-batchsize = 64
+batchsize = 128
 
 Train = np.zeros((ntrain*nclass,imsize,imsize,nchannels))
 Test = np.zeros((ntest*nclass,imsize,imsize,nchannels))
@@ -132,28 +142,36 @@ x_image = tf.reshape(tf_data, [-1, imsize, imsize, nchannels])
 # First Layer
 
 # Conv layer with kernel 5x5 and 32 filter maps followed by ReLu activation
-W_conv1 = weight_variable([3, 3, nchannels, 32])
+W_conv1 = weight_variable([5, 5, nchannels, 32])
 b_conv1 = bias_variable([32])
 h_conv1 = tf.nn.relu(conv2d(x_image, W_conv1) + b_conv1)
 # Max Pooling layer subsampling by 2
 h_pool1 = max_pool_2x2(h_conv1)
 h_pool1 = tf.nn.dropout(h_pool1, layer1_drop)
 
-# norm1
-h_pool1 = tf.nn.lrn(h_pool1, 4, bias=1.0, alpha=0.001 / 9.0, beta=0.75, name='h_pool1')
+#h_fc1 = tf.nn.lrn(h_fc1, 2, bias=1.0, alpha=0.001 / 9.0, beta=0.75, name='h_fc1')
+
+# Adding a name scope ensures logical grouping of the layers in the graph.
+with tf.name_scope('ConvLayer1'):
+    # This Variable will hold the state of the weights for the layer
+    with tf.name_scope('Conv1_Activation'):
+        variable_summaries(h_conv1)
 
 
 # Second Layer
-
 # Conv layer with kernal 5x5 and 64 filter maps followed by ReLu activation
-W_conv2 = weight_variable([3, 3, 32, 64])
+W_conv2 = weight_variable([5, 5, 32, 64])
 b_conv2 = bias_variable([64])
 h_conv2 = tf.nn.relu(conv2d(h_pool1, W_conv2) + b_conv2)
 h_pool2 = max_pool_2x2(h_conv2)
 h_pool2 = tf.nn.dropout(h_pool2, layer2_drop)
 
-# norm1
-h_pool2 = tf.nn.lrn(h_pool2, 4, bias=1.0, alpha=0.001 / 9.0, beta=0.75, name='h_pool2')
+
+# Adding a name scope ensures logical grouping of the layers in the graph.
+with tf.name_scope('ConvLayer2'):
+    # This Variable will hold the state of the weights for the layer
+    with tf.name_scope('Conv2_Activation'):
+        variable_summaries(h_conv2)
 
 # FC layer that has input 7*7*64 vector and output 1024
 W_fc1 = weight_variable([7*7*64, 1024])
@@ -176,18 +194,26 @@ y_conv = tf.matmul(h_fc1_drop, W_fc2) + b_fc2
 
 # --------------------------------------------------
 # loss
-cross_entropy = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=tf_labels, logits=y_conv))
+
 #set up the loss, optimization, evaluation, and accuracy
 
-#optimizer = tf.train.AdamOptimizer(1e-4).minimize(cross_entropy) #.62 after mirror augmentation
-#optimizer = tf.train.RMSPropOptimizer(1e-3).minimize(cross_entropy)
-optimizer = tf.train.MomentumOptimizer(.01, .9).minimize(cross_entropy)
+
+with tf.name_scope('cross_entropy'):
+    cross_entropy = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=tf_labels, logits=y_conv))
+tf.summary.scalar("cross_entropy", cross_entropy)
+
 
 correct_prediction = tf.equal(tf.argmax(y_conv, 1), tf.arg_max(tf_labels, 1))
-accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
 
-tf.summary.scalar('cross_entropy', cross_entropy)
+
+with tf.name_scope('accuracy'):
+    accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
 tf.summary.scalar('accuracy', accuracy)
+
+
+optimizer = tf.train.AdamOptimizer(1e-4).minimize(cross_entropy) #.62 after mirror augmentation
+#optimizer = tf.train.RMSPropOptimizer(1e-4).minimize(cross_entropy)
+#optimizer = tf.train.MomentumOptimizer(.0001, .5).minimize(cross_entropy)
 
 # Merge all the summaries and write them out to result_dir
 summary_op = tf.summary.merge_all()
@@ -205,7 +231,13 @@ sess.run(tf.global_variables_initializer())
 batch_xs = np.zeros([batchsize, imsize, imsize, nchannels])  #setup as [batchsize, width, height, numberOfChannels] and use np.zeros()
 batch_ys = np.zeros([batchsize, nclass])  #setup as [batchsize, the how many classes]
 nsamples = ntrain*nclass
-for i in range(20000):  # try a small iteration size once it works then continue
+
+trainHist = []
+testHist = []
+stepHist = []
+centropyHist = []
+
+for i in range(100000):  # try a small iteration size once it works then continue
     perm = np.arange(nsamples)
     np.random.shuffle(perm)
     for j in range(batchsize):
@@ -216,23 +248,34 @@ for i in range(20000):  # try a small iteration size once it works then continue
         print("After %d steps, Train accuracy: %g" % (i, accuracy.eval(feed_dict={tf_data: batch_xs,
                                                                                   tf_labels: batch_ys, layer1_drop: 1.0,
                                                                                   layer2_drop: 1.0, fc1_drop: 1.0})))
-        #print("test accuracy: %g" % accuracy.eval(feed_dict={tf_data: Test, tf_labels: LTest, layer1_drop: 1.0,
-        #                                                     layer2_drop: 1.0, fc1_drop: 1.0}))
-        #summary_str, acc = sess.run([summary_op, accuracy], feed_dict={tf_data: batch_xs, tf_labels: batch_ys,
-        #                                                               layer1_drop: 1.0, layer2_drop: .5, fc1_drop: 0.4})
-        #summary_writer.add_summary(summary_str, i)
-        #summary_str, loss = sess.run([summary_op, cross_entropy], feed_dict={tf_data: batch_xs, tf_labels: batch_ys,
-         #                                                                    layer1_drop: 1.0, layer2_drop: .5, fc1_drop: 0.4})
-        #summary_writer.add_summary(summary_str, i)
-        #summary_writer.flush()
-        #checkpoint_file = os.path.join(result_dir, 'checkpoint')
-        #saver.save(sess, checkpoint_file, global_step=i)
+
+        summary_str, conv1_act, conv2_act, centropy, accur = sess.run([summary_op, h_conv1, h_conv2, cross_entropy,
+                                                                       accuracy], feed_dict={tf_data: batch_xs,
+                                                                                             tf_labels: batch_ys,
+                                                                                             layer1_drop: 1.0,
+                                                                                             layer2_drop: 1.0,
+                                                                                             fc1_drop: 1.0})
+
+        summary_writer.add_summary(summary_str, i)
+        summary_writer.flush()
+        checkpoint_file = os.path.join(result_dir, 'checkpoint')
+        saver.save(sess, checkpoint_file, global_step=i)
+
         #print("Test accuracy %g:" % (accuracy.eval(feed_dict={tf_data: Test, tf_labels: LTest, keep_prob: 1.0})))
+
+        trainHist.append(accuracy.eval(feed_dict={tf_data: batch_xs, tf_labels: batch_ys, layer1_drop: 1.0,
+                                                  layer2_drop: 1.0, fc1_drop: 1.0}))
+        testHist.append(accuracy.eval(feed_dict={tf_data: Test, tf_labels: LTest, layer1_drop: 1.0,
+                                                         layer2_drop: 1.0, fc1_drop: 1.0}))
+        centropyHist.append(cross_entropy.eval(feed_dict={tf_data: batch_xs, tf_labels: batch_ys, layer1_drop: 1.0,
+                                                         layer2_drop: 1.0, fc1_drop: 1.0}))
+        stepHist.append(i)
 
     if i%1000 == 0:
         print("Test accuracy: %g" % accuracy.eval(feed_dict={tf_data: Test, tf_labels: LTest, layer1_drop: 1.0,
                                                          layer2_drop: 1.0, fc1_drop: 1.0}))
-    optimizer.run(feed_dict={tf_data: batch_xs, tf_labels: batch_ys, layer1_drop: 1.0, layer2_drop: 1.0, fc1_drop: .3}) # dropout only during training
+
+    optimizer.run(feed_dict={tf_data: batch_xs, tf_labels: batch_ys, layer1_drop: 1.0, layer2_drop: 1.0, fc1_drop: .2}) # dropout only during training
     #.57 with .2 dropout
 
 # --------------------------------------------------
@@ -240,6 +283,9 @@ for i in range(20000):  # try a small iteration size once it works then continue
 
 print("test accuracy %g" % accuracy.eval(feed_dict={tf_data: Test, tf_labels: LTest,
                                                     layer1_drop: 1.0, layer2_drop: 1.0, fc1_drop: 1.0}))
+
+print("Cross Entropy Loss: %g" % cross_entropy.eval(feed_dict={tf_data: batch_xs, tf_labels: batch_ys, layer1_drop: 1.0,
+                                                         layer2_drop: 1.0, fc1_drop: 1.0}))
 
 weights1 = W_conv1.eval()
 sess.close()
@@ -250,12 +296,27 @@ sess.close()
 
 print(weights1.shape)
 
+plt.figure(1)
 for i in range(32):
     plt.subplot(4, 8, i+1)
     plt.imshow(weights1[:, :, 0, i], cmap='gray')
     plt.title('Filter ' + str(i+1))
     plt.axis('off')
     #plt.subplots_adjust(hspace=.5, wspace=1.0)
+
+plt.figure(2)
+plt.plot(stepHist, trainHist, 'r', label='Train')
+plt.plot(stepHist, testHist, 'b', label='Test')
+plt.legend(loc='best')
+plt.ylabel('Accuracy')
+plt.ylim(0, 1)
+plt.grid()
+ax2 = plt.twinx()
+ax2.plot(stepHist, centropyHist, 'g', label='Loss')
+ax2.legend(loc=0)
+ax2.set_ylabel('Cross Entropy Loss')
+
+plt.xlabel('Training Steps')
 
 plt.show()
 

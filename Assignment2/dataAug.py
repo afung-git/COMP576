@@ -1,12 +1,7 @@
-import tensorflow as tf
-from scipy import misc
-import numpy as np
-import tensorflow as tf
-import random
+from PIL import Image, ImageFilter
 import matplotlib.pyplot as plt
-from PIL import Image
 
-ntrain = 4000
+ntrain = 6000
 ntest = 100
 nclass = 10
 imsize = 28
@@ -14,8 +9,9 @@ imsize = 28
 
 # Show image as a check
 
+
+#Flips left to right
 '''
-Flips left to right
 for iclass in range(0, nclass):
     for isample in range(0, ntrain):
         path = 'Data/CIFAR10/Train/%d/Image%05d.png' % (iclass, isample)
@@ -28,13 +24,36 @@ for iclass in range(0, nclass):
         path = 'Data/CIFAR10/Train/%d/Image%05d.png' % (iclass, isample)
         img = Image.open(path)
         img.transpose(Image.FLIP_TOP_BOTTOM).save('Data/CIFAR10/Train/%d/Image%05d.png' % (iclass, isample+2000))
-'''
 
+'''
 for iclass in range(0, nclass):
     for isample in range(0, ntrain):
         path = 'Data/CIFAR10/Train/%d/Image%05d.png' % (iclass, isample)
         img = Image.open(path)
-        img.transpose(Image.ROTATE_90).save('Data/CIFAR10/Train/%d/Image%05d.png' % (iclass, isample+4000))
+        img.transpose(Image.ROTATE_90).save('Data/CIFAR10/Train/%d/Image%05d.png' % (iclass, isample+6000))
 
-print('Complete')
 
+
+'''
+for iclass in range(0, nclass):
+    for isample in range(0, ntrain):
+        path = 'Data/CIFAR10/Train/%d/Image%05d.png' % (iclass, isample)
+        img = Image.open(path)
+        img.filter(ImageFilter.GaussianBlur(1)).save('Data/CIFAR10/Train/%d/Image%05d.png' % (iclass, isample+2000))
+
+
+       
+img = Image.open('Data/CIFAR10/Train/0/Image00000.png')
+imgblur = img.filter(ImageFilter.GaussianBlur(1.5)).save('Data/CIFAR10/Train/%d/Image%05d.png' % (iclass, isample+1000))
+imgblur.save('blurr.png')
+
+
+plt.subplot(1, 2, 1)
+plt.imshow(img)
+
+plt.subplot(1, 2, 2)
+plt.imshow(imgblur)
+plt.show()
+'''
+
+print("complete")
